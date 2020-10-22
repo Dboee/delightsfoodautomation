@@ -1,25 +1,40 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import firebase from './firebase';
+import {OppskriftInput} from './oppskrift-input.component';
 
 function App() {
+  
+  const [oppskrifter, setOppskrifter] = React.useState([]);
+  const [newOppskriftName, setNewOppskriftName] = React.useState();
+
+  
+  React.useEffect(() => {
+    const fetchData =  async () => {
+      const db = firebase.firestore()
+      const data = await db.collection("oppskrifter").get()
+      setOppskrifter(data.docs.map(doc => ({...doc.data(), id: doc.id })))
+    }
+    fetchData()
+  }, [])
+  
+  
+  const onCreate = () => {
+    const db = firebase.firestore();
+    db.collection("oppskrifter").add({name:newOppskriftName})
+  }
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ul>
+    <input value={newOppskriftName} onChange={e => setNewOppskriftName(e.target.value)} />
+    <button onClick={onCreate}>Legg til</button>
+      {oppskrifter.map(oppskrift => (
+        <li key={oppskrift.name}>
+          <OppskriftInput oppskrift={oppskrift}/>
+        </li>
+      ))}
+    </ul>
   );
 }
 
